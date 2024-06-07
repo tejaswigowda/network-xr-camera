@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html style="background-color: black;">
+
+<head>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=no'>
+  <meta name='mobile-web-app-capable' content='yes'>
+  <meta name='apple-mobile-web-app-capable' content='yes'>
+  <script src="quaternion.min.js"></script>
+  <script src="jquery-3.5.1.min.js"></script>
+  <style>
+    video::-webkit-media-controls {
+      display: none !important;
+    }
+    video::-media-controls {
+      display: none !important;
+    }
+    video::-moz-media-controls {
+      display: none !important;
+    }
+
+
+  </style>
+
+  <title>Network XR Camera</title>
+</head>
+
+<body style="margin:0; padding:0; background: black; font-family:Arial, Helvetica, sans-serif">
+
+  <h1 style="margin-right: 10px; color:white; text-shadow:0px 0px 3px black; text-align:center;">Network XR Camera</h1>
+  <button
+    style="position:fixed; top: calc(50% - 50px);right: calc(50% - 100px); font-size: 30px; width: 200px; height: 100px;"
+    onclick="start()"> Start
+  </button>
+
+  <video id="video" nocontrols style="display:none"></video>
+  <canvas id="canvas" style="display:none"></canvas>
+
+  <script>
+    var isfullscreen = false;
+    var ws;
+    var canvas = document.getElementById('canvas');
+    var portStr = ":" + location.port;
+
+    var protocolStr = "ws";
+    if (location.protocol === 'https:') {
+      protocolStr = "wss";
+    }
+    var st = protocolStr + '://' + location.hostname + portStr + "/jpgstream_server";
+    console.log(st);
+    ws = new WebSocket(st);
+
+    // get webcam
+
+
+    function start() {
+      navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'environment'
+        }
+      }).then(function (stream) {
+        var video = document.getElementById('video');
+        video.style.display = "block";
+        video.srcObject = stream;
+        video.setAttribute('playsinline', '');
+        video.setAttribute('muted', '');
+        // no controls
+        video.controls = false;
+
+        video.play();
+        // fullscreen
+        video.requestFullscreen();
+        video.style.display = "block";
+        isfullscreen = true;
+        video.onfullscreenchange = function (event) {
+          console.log("fullscreenchange", event);
+          // is fullscreen
+          if (document.fullscreen) {
+            video.style.display = "block";
+            isfullscreen = true;
+          } else {
+            video.style.display = "none";
+            isfullscreen = false
+          }
+        };
+
+        // send video stream to websocket
+        setInterval(function () {
+          var context = canvas.getContext('2d');
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+          var data = canvas.toDataURL('image/png');
+          //console.log(data);
+          if (isfullscreen) {
+            ws.send(data);
+          }
+        }, 1000 / 30);
+      });
+    }
+
+
+
+  </script>
+
+</body>
+
+</html>
