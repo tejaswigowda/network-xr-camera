@@ -1,0 +1,16 @@
+<html>
+    <head>
+        <title>Test</title>
+        <script src="jqery-3.5.1.min.js"></script>
+    </head>
+    <body>
+        <img width="100%" id="video">
+        <script>
+        var ws = new WebSocket('ws://localhost:" + location.port + "/jpgstream_client');
+        ws.onmessage = function (event) {
+            var img = document.getElementById('video');
+            img.src = 'data:image/jpeg;base64,' + event.data;
+        };
+        </script>
+    </body>
+</html>
