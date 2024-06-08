@@ -34,7 +34,7 @@
   </button>
 
   <div id="data">
-    
+
   </div>
 
   <video id="video" nocontrols style="display:none"></video>
@@ -52,12 +52,12 @@
     }
     var st = protocolStr + '://' + location.hostname + portStr + "/jpgstream_server";
     console.log(st);
-    ws = new WebSocket(st);
 
     // get webcam
 
 
     function start() {
+      ws = new WebSocket(st);
       navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: 'environment'
@@ -97,6 +97,7 @@
           var data = canvas.toDataURL('image/png');
           //console.log(data);
           if (isfullscreen) {
+            // send string
             ws.send(data);
           }
         }, 1000 / 30);

@@ -33,11 +33,11 @@ const wss2 = new WebSocket.Server({ noServer: true });
 
 // camera websocket
 wss1.on('connection', function connection(ws) {
-  ws.on('message', function incoming(message) {
-    console.log('%s', message);
+  ws.on('message', function incoming(message, isBinary = false) {
+    //console.log('%s', message);
     wss2.clients.forEach(function each(client) {
       if (client.readyState === WebSocket.OPEN) {
-        client.send(message);
+        client.send(message, { binary: isBinary });
       }
     });
   });
@@ -71,6 +71,11 @@ app.get("/", function (req, res) {
   res.sendFile(__dirname + '/public/index.html');
 });
 
+app.get("/test", function (req, res) {
+  res.sendFile(__dirname + '/public/test.html');
+});
+
+
 app.get("/numberofclients", function (req, res) {
   var numberofclient = wss2.clients.size;
   res.writeHead(200, { 'Content-Type': 'text/plain' }); // send response header
@@ -84,5 +89,26 @@ server.listen(port, () => {
     console.log(qrcode);
     console.log(chalk.black.bgGreen(`Connect camera at:`));
     console.log(chalk.white(`http://${ipAddr}:${port}/\n`));
+    console.log(chalk.black.bgRed("Open test page (" + x + "/)in browser? (y/n) "));
   });
 });
+
+
+
+    // get yes/no from user
+    var readline = require('readline');
+    var rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+    var x = `http://${ipAddr}:${port}/test`;
+    rl.question("Open test page (" + x + "/)in browser? (y/n) ", function(answer) {
+        if(answer == "y" || answer == "Y" || answer == "yes" || answer == "Yes" || answer == "YES" || answer == ""){
+            var opn = require('opn');
+            opn(x);
+        }
+        else{
+            console.log("Open test page in browser by typing: " + x + "/");
+        }
+        rl.close();
+    });
